@@ -1,20 +1,22 @@
+import xml.etree.ElementTree as ET 
 import platform
+import requests
 import selenium
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
 
 class WebScraper:
-    def initialize_driver():
+    def __init__(self, platform):
         supported_platforms = {
                                 'Linux': 'bin/chromedriver_linux64/chromedriver',
                                 'Darwin': 'bin/chromedriver_mac64/chromedriver',
                                 'Windows': 'bin/chromedriver_win32/chromedriver.exe',
                               }
-        driver_path = supported_platforms.get(platform.system(), "Unsupported platform.")
+        driver_path = supported_platforms.get(platform, "Unsupported platform.")
         if driver_path == 'Unsupported platform.':
             print('Error:', driver_path)
-            sys.exit(1)
+            raise Exception('Unsupported platform')
         options = webdriver.ChromeOptions()
         options.add_experimental_option("prefs", {"profile.managed_default_content_settings.images": 2})
         options.add_argument("--no-sandbox")
@@ -26,12 +28,18 @@ class WebScraper:
         options.add_argument("start-maximized")
         options.add_argument("disable-infobars")
         options.add_argument("--headless")
-        driver = webdriver.Chrome(executable_path=driver_path, options=options)
-        return driver
+        self.driver = webdriver.Chrome(executable_path=driver_path, options=options)
+
+    def scrape_category_links(navigation_xml):
+        links = []
+        response = requests.get(navigation_xml)
+        tree = ET.fromstring(response.content)
+        print(tree.tag)
+        for url in tree:
+            links.append(url[0].text)
+        return links
 
 if __name__ == '__main__':
-    driver = WebScraper.initialize_driver()
-    driver.get('https://www.ulta.com/navigation0.xml')
-    content = driver.page_source
-    print(content)
-    driver.quit()
+    # ws = WebScraper(platform.system())
+    links = WebScraper.scrape_category_links('https://www.ulta.com/navigation0.xml')
+    print(links)
