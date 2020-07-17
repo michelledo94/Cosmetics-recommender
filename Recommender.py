@@ -9,19 +9,19 @@ import seaborn as sns
 import re, math
 from collections import Counter
 import os
-os.chdir('C:\\Users\\bichn\\Desktop\\MSBA\\0 MOOCs\\Projects\\cosmetics\\Comparing Cosmetics by Ingredients\\datasets')
+os.chdir('C:\\Users\\bichn\\Desktop\\MSBA\\0 MOOCs\\abc')
 
 #%%
 # Load and clean data
-df = pd.read_csv('cosmetics.csv')
+df = pd.read_csv('datasets\cosmetics.csv')
 df = df[~df.Ingredients.str.contains('Visit the DERMAFLASH boutique')]
-
 #%%
 class prod:
+    """ 
+    Process and output product recommendations with respect to retailer and product caregories
+    """
     def __init__(self, retailer):
-        """ 
-        Process and output product recommendations with respect to retailer and product caregories
-        """
+    
         self.retailer = retailer 
         
     def to_vector(self, inglist1, inglist2):
