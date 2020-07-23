@@ -19,10 +19,11 @@ from collections import Counter
 
 
 # Load the data
-df = pd.read_csv('cosmetics.csv')
+df = pd.read_csv('datasets/cosmetics.csv')
 df = df[~df.Ingredients.str.contains('Visit the DERMAFLASH boutique')]
 # Check the first five rows
 print(df.head())
+print(df.Label.drop_duplicates())
 
 
 # In[209]:
