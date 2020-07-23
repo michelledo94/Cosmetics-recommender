@@ -6,23 +6,28 @@ from sklearn.manifold import TSNE
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import figure
 import seaborn as sns
-import re, math
+import re
 from collections import Counter
 import os
-os.chdir('C:\\Users\\bichn\\Desktop\\MSBA\\0 MOOCs\\abc')
+import streamlit as st
+
+# Set directory
+os.chdir('C:\\Users\\bichn\\Desktop\\MSBA\\0 MOOCs\\Projects\\Cosmetics-recommender')
 
 #%%
 # Load and clean data
-df = pd.read_csv('datasets\cosmetics.csv')
+df = pd.read_csv('datasets/cosmetics.csv')
 df = df[~df.Ingredients.str.contains('Visit the DERMAFLASH boutique')]
+
 #%%
 class prod:
     """ 
     Process and output product recommendations with respect to retailer and product caregories
     """
-    def __init__(self, retailer):
-    
-        self.retailer = retailer 
+    def __init__(self, price, data, new_list):
+        self.price = price
+        self.data = data
+        self.new_list = new_list
         
     def to_vector(self, inglist1, inglist2):
         """ 
@@ -44,13 +49,13 @@ class prod:
         """
         Calculate cosine similarity score
         """
-        len_a  = sum(v1**2 for v1 in vec1) ** 0.5       
-        len_b  = sum(v2**2 for v2 in vec2) ** 0.5             
+        len_1  = sum(v1**2 for v1 in vec1) ** 0.5       
+        len_2  = sum(v2**2 for v2 in vec2) ** 0.5             
         dot    = sum(v1*v2 for v1,v2 in zip(vec1, vec2))
-        cosine = dot / (len_a * len_b) 
+        cosine = dot / (len_1 * len_2) 
         return cosine 
     
-    def recommend(self, new_list, df): 
+    def get_scores(self): 
         """ 
         Take ingredient list and return recommended product(s)
         Arguments:
@@ -62,18 +67,30 @@ class prod:
         """
         scores = []
         for i in range(df.shape[1]):
-            vec1, vec2 = self.to_vector(new_list, df.Ingredients[i])
+            vec1, vec2 = self.to_vector(self.new_list, df.Ingredients[i])
             cs = self.cosine(vec1, vec2)
             scores.append(cs)
-        return df.Name[np.argmax(scores)], df.Ingredients[np.argmax(scores)], scores[np.argmax(scores)]
+        return scores
+    
+    def recommend(self):
+        scores = self.get_scores()
+        sim_idx = np.argmax(scores)
+        if max(scores) >= 0.2 and df.Price[sim_idx] < self.price:
+            sim_product = "{} {}".format(df.Brand[sim_idx], df.Name[sim_idx])
+            return sim_product
+        elif max(scores) >= 0.2 and df.Price[sim_idx] > self.price:
+            return "No cheaper alternative found" 
+        else:
+            return "No similar product found"
+    
+    def get_prob(self):
+        scores = self.get_scores()
+        sim_idx = np.argmax(scores)
+        if max(scores) >= 0.2 and df.Price[sim_idx] < self.price:
+            prob = "{}%".format(round(scores[sim_idx]*100, 2))
+        return prob 
+
     
 #%%
-new = 'Water\Aqua\Eau, Dimethicone, Butylene Glycol, Glycerin, Trisiloxane, Trehalose, Sucrose, Ammonium Acryloyldimethyltaurate/Vp Copolymer, Hydroxyethyl Urea, Camellia Sinensis (Green Tea) Leaf Extract, Silybum Marianum (LadyS Thistle) Extract, Betula Alba (Birch) Bark Extract, Saccharomyces Lysate Extract, Aloe Barbadensis Leaf Water, Thermus Thermophillus Ferment, Caffeine, Sorbitol, Palmitoyl Hexapeptide-12, Sodium Hyaluronate, Caprylyl Glycol, Oleth-10, Sodium Polyaspartate, Saccharide Isomerate, Hydrogenated Lecithin, Tocopheryl Acetate, Acrylates/C10-30 Alkyl Acrylate Crosspolymer, Glyceryl Polymethacrylate, Tromethamine, PEG-8, Hexylene Glycol, Magnesium Ascorbyl Phosphate, Disodium EDTA, BHT, Phenoxyethanol, Red 4 (CI 14700), Yellow 5 (CI 19140)'
-prod_sephora = prod(retailer='Sephora')
-print(prod_sephora.retailer)
-prod_sephora.recommend(new, df)
-
-
-
-
-
+if __name__ == "__main__":
+    main()
