@@ -21,16 +21,18 @@ class WebScraper:
     def __init__(self, platform, site):
         self.site = site
         if 'ulta' in site:
-            self.categories = ulta_categories
+            self.categories = WebScraper.ulta_categories
         self.driver = webdriver.Chrome(executable_path=binary_path)
 
-    def scrape_category_links(navigation_xml):
+    def scrape_category_links(self, navigation_xml):
         links = []
         response = requests.get(navigation_xml)
         tree = ET.fromstring(response.content)
-        print(tree.tag)
         for url in tree:
-            links.append(url[0].text)
+            for i in self.categories.values():
+                if i in url[0].text:
+                    links.append(url[0].text)
+
         return links
 
     def scrape_product_links(self, category_page):
@@ -42,7 +44,11 @@ class WebScraper:
 
 
 if __name__ == '__main__':
-    ws = WebScraper(platform.system())
-    category_pages = WebScraper.scrape_category_links('https://www.ulta.com/navigation0.xml')
-    for page in category_pages:
-        product_links = ws.scrape_product_links(page)
+    ws = WebScraper(platform.system(), 'https://www.ulta.com/')
+    try:
+        category_pages = ws.scrape_category_links('https://www.ulta.com/navigation0.xml')
+        for page in category_pages:
+            product_links = ws.scrape_product_links(page)
+        
+    finally:
+        ws.driver.quit()
