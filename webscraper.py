@@ -39,7 +39,13 @@ class WebScraper:
         links = []
         self.driver.get(category_page)
         content = self.driver.page_source
-        print(content)
+        products = self.driver.find_elements_by_class_name('productQvContainer')
+        for product in products:
+            try:
+                ref = product.find_element_by_tag_name('a').get_attribute('href')
+                links.append(ref)
+            except selenium.common.exceptions.NoSuchElementException:
+                continue
         return links
 
 
@@ -49,6 +55,6 @@ if __name__ == '__main__':
         category_pages = ws.scrape_category_links('https://www.ulta.com/navigation0.xml')
         for page in category_pages:
             product_links = ws.scrape_product_links(page)
-        
+            print(product_links)
     finally:
         ws.driver.quit()
