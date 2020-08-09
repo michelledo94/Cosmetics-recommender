@@ -20,6 +20,7 @@ class WebScraper:
 
     def __init__(self, platform, site):
         self.site = site
+        self.catalog = {}
         if 'ulta' in site:
             self.categories = WebScraper.ulta_categories
         self.driver = webdriver.Chrome(executable_path=binary_path)
@@ -29,8 +30,8 @@ class WebScraper:
         response = requests.get(navigation_xml)
         tree = ET.fromstring(response.content)
         for url in tree:
-            for i in self.categories.values():
-                if i in url[0].text:
+            for category in self.categories:
+                if self.categories[category] in url[0].text:
                     links.append(url[0].text)
 
         return links
@@ -38,7 +39,6 @@ class WebScraper:
     def scrape_product_links(self, category_page):
         links = []
         self.driver.get(category_page)
-        content = self.driver.page_source
         products = self.driver.find_elements_by_class_name('productQvContainer')
         for product in products:
             try:
@@ -48,6 +48,15 @@ class WebScraper:
                 continue
         return links
 
+    def scrape_product_details(self, product_page):
+        self.driver.get(product_page)
+        brand_name = self.driver.find_element_by_xpath("//div[@class='ProductMainSection__brandName']").find_element_by_tag_name('p').text
+        product_name = self.driver.find_element_by_xpath("//div[@class='ProductMainSection__productName']").find_element_by_tag_name('span').text
+        price = self.driver.find_element_by_xpath("//div[@class='ProductPricingPanel']").find_element_by_tag_name('span').text
+        print(brand_name, product_name, price)
+        ingredient_sect = self.driver.find_element_by_xpath("//div[@class='ProductDetail__ingredients']")
+        ingredients = ingredient_sect.find_element_by_xpath(".//div[@class='ProductDetail__productContent']").get_attribute('textContent')
+        print(ingredients)
 
 if __name__ == '__main__':
     ws = WebScraper(platform.system(), 'https://www.ulta.com/')
@@ -55,6 +64,8 @@ if __name__ == '__main__':
         category_pages = ws.scrape_category_links('https://www.ulta.com/navigation0.xml')
         for page in category_pages:
             product_links = ws.scrape_product_links(page)
-            print(product_links)
+            for product in product_links:
+                ws.scrape_product_details(product)
+
     finally:
         ws.driver.quit()
