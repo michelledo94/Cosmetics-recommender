@@ -66,14 +66,14 @@ class WebScraper:
 if __name__ == '__main__':
     ws = WebScraper(platform.system(), 'https://www.ulta.com/')
     items = []
-    with open(ws.store + '.csv', 'w') as f:
-        try:
-            category_pages = ws.scrape_category_links('https://www.ulta.com/navigation0.xml')
-            for category, page in category_pages:
-                product_links = ws.scrape_product_links(page)
-                for product in product_links:
-                    details = ws.scrape_product_details(product)
-                    if details:
+    try:
+        category_pages = ws.scrape_category_links('https://www.ulta.com/navigation0.xml')
+        for category, page in category_pages:
+            product_links = ws.scrape_product_links(page)
+            for product in product_links:
+                details = ws.scrape_product_details(product)
+                if details:
+                    with open(ws.store + '.csv', 'a') as f:
                         f.write(','.join([category] + details) +'\n')
-        finally:
-            ws.driver.quit()
+    finally:
+        ws.driver.quit()
