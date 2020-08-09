@@ -65,7 +65,6 @@ class WebScraper:
 
 if __name__ == '__main__':
     ws = WebScraper(platform.system(), 'https://www.ulta.com/')
-    items = []
     try:
         category_pages = ws.scrape_category_links('https://www.ulta.com/navigation0.xml')
         for category, page in category_pages:
