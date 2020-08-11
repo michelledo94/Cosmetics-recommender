@@ -45,7 +45,8 @@ class WebScraper:
             try:
                 ref = product.find_element_by_tag_name('a').get_attribute('href')
                 links.append(ref)
-            except selenium.common.exceptions.NoSuchElementException:
+            except selenium.common.exceptions.NoSuchElementException as e:
+                print('Error in scrape_product_links:', category_page, e)
                 continue
         return links
 
@@ -58,7 +59,8 @@ class WebScraper:
             rating = self.driver.find_element_by_xpath("//div[@class='RatingPanel']").find_element_by_xpath(".//label[@class='sr-only']").text
             ingredient_sect = self.driver.find_element_by_xpath("//div[@class='ProductDetail__ingredients']")
             ingredients = '"' + ingredient_sect.find_element_by_xpath(".//div[@class='ProductDetail__productContent']").get_attribute('textContent') + '"'
-        except selenium.common.exceptions.NoSuchElementException:
+        except selenium.common.exceptions.NoSuchElementException as e:
+            print('Error in scrape_product_details', product_page, e)
             return None
 
         return [brand, name, price, rating, ingredients]
